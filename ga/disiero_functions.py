@@ -8,6 +8,11 @@ from myutils.geometry2d import generate_random_point, is_valid_path, distance, c
 import time
 from scenario.conf import scn
 
+import logging
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 def mutate_individual(ind, scn, indpb=0.3):
     """Applica una mutazione sui punti intermedi."""
     for i in range(1, len(ind) - 1):  # Non muovere entry e exit
@@ -30,10 +35,13 @@ def mutate_swap_segments(ind, prob=0.3):
 
 def random_seed(scn, n_segments):
     seed = None
+    i = 0
     while seed is None:
+        logger.debug(f" Generating random seed {i+1}.")
         candidate = create_individual(scn["ing_late"], scn["usc_late"], scn, n_segments)
         if is_valid_path(candidate, scn):
             seed = candidate
+        i += 1
     return seed
 
 def population_from_seed(pop_size, n_segments, scn, seed=None):
@@ -44,6 +52,7 @@ def population_from_seed(pop_size, n_segments, scn, seed=None):
     # Crea la popolazione usando solo la prima seed
     population = []
     while len(population) < pop_size:
+        # logger.info(f" Generating individual {len(population)+1}/{pop_size}.")
         mutant = creator.Individual(perturb_seed(seed, scn))
         mutant, = combined_mutation(mutant)
         if is_valid_path(mutant, scn):
@@ -88,7 +97,7 @@ def combined_mutation(ind):
 def create_individual(entry, exit_point, scn, n_segments=2):
     """Crea un individuo come lista di punti."""
     coords = [entry]
-    for _ in range(n_segments+1):
+    for _ in range(n_segments):
         coords.append(generate_random_point(scn["area_size"]))
     coords.append(exit_point)
     return creator.Individual(coords)

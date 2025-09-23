@@ -48,6 +48,7 @@ class Scenario():
         self.sampling_interval = sampling_interval
         self.separation_min = separation_min
 
+random.seed(42)  # Per riproducibilità
 
 # DEAP Setup
 creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0))
@@ -66,6 +67,8 @@ area_poly = Polygon([(0, 0), (0, area_size), (area_size, area_size), (area_size,
 aerei_data, collision_points = leggi_dati_csv(input_scenarios_file)
 
 for exp in range(n_experiments):
+    logger.info(f"Running experiment {exp + 1}/{n_experiments}.")
+
     p_inc = collision_points[exp]
     aerei = aerei_data[exp*2:exp*2+2]
     
@@ -89,6 +92,7 @@ for exp in range(n_experiments):
     original_line = LineString([ing_late, usc_late])
 
     seed = random_seed(scn, n_segments)
+    logging.info(f" Generating initial population with seed: {seed}")
     population = population_from_seed(pop_size, n_segments, scn=scn, seed=seed)
     logger.info(f" Popolazione iniziale generata con seed: {seed}, {len(population)} individui validi.")
 

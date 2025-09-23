@@ -8,7 +8,7 @@ scn = {
     "first_experiment": 0,
     "pop_size": 100,
     "n_generations": 10,
-    "n_segments": 3,
+    "n_segments": 2,
     "sampling_interval": 30,  # in secondi
     "KMH_TO_NM_MIN": 0.539957 / 60,
     "input_scenarios_file": "data/traiettorie_aerei.csv"

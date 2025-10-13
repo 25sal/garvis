@@ -5,7 +5,7 @@ import json
 from typing import List, Tuple
 from scenario.conf import scn
 from shapely.geometry import LineString, Polygon, Point
-from myutils.geometry2d import calculate_border_intersection
+from myutils.geometry2d import calculate_border_intersection, compute_initial_bearing
 import logging
 import numpy as np
 
@@ -50,12 +50,12 @@ def simula_traiettoria(individuo: Individuo,
     path_length_inside = 0.0
     total_angle_change = 0.0
     border = Polygon([(0, 0), (0, lato), (lato, lato), (lato, 0)])
+    border = border.boundary
     
     for t, dtheta, v in ordina_individuo(individuo):
         dt = max(0.0, t - t_prev)
-        dx = v * math.cos(theta) * dt
-        dy = v * math.sin(theta) * dt
-        print(dx,dy,theta)
+        dx = v * math.cos(math.radians(theta)) * dt
+        dy = v * math.sin(math.radians(theta)) * dt
         new_x = x + dx
         new_y = y + dy
         new_t = t
@@ -81,24 +81,25 @@ def simula_traiettoria(individuo: Individuo,
             time_of_exit = new_t
             exit_point = (x, y)
             break
-        
+
+   
+
     if not exited:
         
         # extend the last line segment to the border  
-        endx = lato - abs(path[-1][0])
-        endy = lato - abs(path[-1][1])
-        increment = min(endx, endy)
-        x_point = endx + increment * int(np.sign(path[-1][0]-path[-2][0]))
-        y_point = endy +  increment * int(np.sign(path[-1][1]-path[-2][1]))
-
-        line = LineString([path[-1][0:2], (x_point,y_point)])
+        dx = 2*lato*math.cos(math.radians(theta))
+        dy = 2*lato*math.sin(math.radians(theta))
+        line = LineString([(path[-1][0], path[-1][1]), (path[-1][0]+dx, path[-1][1]+dy)])
+        inter = line.intersection(border)
+        line = LineString([(path[-1][0], path[-1][1]), (inter.x, inter.y)])
         path_length_inside += line.length
         time_of_exit = path[-1][2] + line.length / v
-        path.append((x_point, y_point, time_of_exit))
-        print(path)
-        exit_point = (x_point,y_point)
+        path.append((inter.x, inter.y, time_of_exit))
+        exit_point = (inter.x,inter.y)
         exited = True
-        
+
+ 
+ 
             
     # print(path)
     return {

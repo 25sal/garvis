@@ -10,6 +10,7 @@ from myutils.geometry2d import is_valid_path
 from scenario.scenario2d import leggi_dati_csv
 from myutils.geometry2d import compute_initial_bearing
 import matplotlib.pyplot as plt
+import math
 import sys
 
 # Configure logging
@@ -71,7 +72,7 @@ def main():
         scn["usc_early"] = usc_early
         scn["speed_late"] = speed_late
         scn["speed_early"] = speed_early
-        THETA_0 = compute_initial_bearing(ing_late, usc_late)
+        THETA_0 = 360 * compute_initial_bearing(ing_late, usc_late)/(2*math.pi)
         TIME_0 = 0.0
         # max_time is the time to collision
         t_col = 60 * distance(ing_early, p_inc) / speed_early
@@ -123,7 +124,7 @@ def main():
             plt.scatter(xx[1], yy[1], color='red', alpha=0.1)
             
         plt.plot([ing_late[0], usc_late[0]], [ing_late[1], usc_late[1]], color='orange')
-        plt.show()
+        plt.savefig("data/debugpop.png")
         plt.figure()
         sys.exit(0)
         tools.emo.assignCrowdingDist(pop)

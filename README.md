@@ -38,3 +38,7 @@ The result is a file named data/pareto_scenario_{i}.json for each scenario.
 ## GA result visualization
 
 Read from data/pareto_scenario{i}.json and generate  images of the pareto and of paths.
+
+```bash
+python3 ga/visualization.py
+```

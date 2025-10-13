@@ -101,3 +101,10 @@ def compute_curvature(path):
         angle = np.arccos(np.clip(np.dot(v1, v2) / (norm1 * norm2), -1, 1))
         angles.append(angle)
     return np.mean(angles) 
+
+
+def compute_initial_bearing(p1, p2):
+    dx = p2[0] - p1[0]
+    dy = p2[1] - p1[1]
+    angle = math.atan2(dy, dx)
+    return angle

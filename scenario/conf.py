@@ -3,7 +3,7 @@ scn = {
     "speed_min": 500,
     "speed_max": 800,
     "separation_min": 2.5,
-    "max_turn_angle_deg": 25,
+    "max_turn_angle_deg": 90,
     "n_experiments": 1,
     "first_experiment": 0,
     "pop_size": 100,

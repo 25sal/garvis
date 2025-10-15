@@ -40,11 +40,28 @@ NUM_GENI = scn["n_segments"]-1
 def init_ind():
     return creator.Individual(ga.init_individuo_random(num_geni=NUM_GENI, speed_lim=(scn["speed_min"]*KMH_TO_NM_MIN, scn    ["speed_max"]*KMH_TO_NM_MIN), theta_lim=scn["max_turn_angle_deg"], time_span=(0, scn["MAX_TIME"])))
 
-def evaluate(ind, p0, theta0, time0, lato, exit_ref):
-    fit, sim = ga.valuta_individuo(ind, p0=p0, theta0=theta0, t0=time0, lato=lato, exit_ref=exit_ref)
+def evaluate(ind, exp_scenario):
+    fit, sim = ga.valuta_individuo(ind, exp_scenario)
     ind.sim = sim
     return fit
 
+def draw_population(population, exp_scenario, filename="population.png"):
+    plt.figure(figsize=(10, 7))
+    for ind in population:
+        x = [p[0] for p in ind.sim["path"]]
+        y = [p[1] for p in ind.sim["path"]]
+        plt.plot(x, y, color='b', alpha=0.3)
+    plt.plot([exp_scenario["ing_late"][0], exp_scenario["usc_late"][0]], [exp_scenario["ing_late"][1], exp_scenario["usc_late"][1]], color='orange', label='Late UAV')
+    plt.plot([exp_scenario["ing_early"][0], exp_scenario["usc_early"][0]], [exp_scenario["ing_early"][1], exp_scenario["usc_early"][1]], color='g', label='Early UAV')
+    circle = plt.Circle(exp_scenario["collision_point"], 2.5, color='r', fill=True)
+    plt.gca().add_artist(circle)
+    plt.xlim(0, area_size)
+    plt.ylim(0, area_size)
+    plt.xlabel("X (NM)")
+    plt.ylabel("Y (NM)")
+    plt.title("Population Trajectories")
+    plt.savefig(filename)
+    plt.close()
 
 def main():
     
@@ -52,7 +69,7 @@ def main():
     aerei_data, collision_points = leggi_dati_csv(input_scenarios_file)
 
     # Definizione tipo fitness con 3 obiettivi: massimizza primo, minimizza secondo e terzo
-    creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0, -1.0))
+    creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0))
     creator.create("Individual", list, fitness=creator.FitnessMulti, sim=dict)
 
     for exp in range(n_experiments):
@@ -72,12 +89,24 @@ def main():
         scn["usc_early"] = usc_early
         scn["speed_late"] = speed_late
         scn["speed_early"] = speed_early
-        THETA_0 = 360 * compute_initial_bearing(ing_late, usc_late)/(2*math.pi)
-        TIME_0 = 0.0
-        # max_time is the time to collision
-        t_col = 60 * distance(ing_early, p_inc) / speed_early
        
-        scn["MAX_TIME"] = t_col 
+        # max_time is the time to collision
+        collision_time = 60 * distance(ing_early, p_inc) / speed_early
+        exit_late_time = 60 * distance(ing_late, usc_late) / speed_late
+        
+        exp_scenario = {
+            "ing_early": ing_early,
+            "usc_early": usc_early,
+            "speed_early": speed_early,
+            "ing_late": ing_late,
+            "usc_late": usc_late,
+            "speed_late": speed_late,
+            "exit_late_time": exit_late_time,
+            "collision_point": p_inc,
+            "collision_time": collision_time
+        }
+       
+        scn["MAX_TIME"] = exit_late_time 
        
         toolbox = base.Toolbox()
         toolbox.register("individual", init_ind)
@@ -90,43 +119,19 @@ def main():
 
 
         logger.info(f"--- Experiment {exp+1}/{n_experiments} with entry {ing_early}, exit {usc_early}, speed {speed_early} ---")
-        logger.info(f"collision_time: {t_col} min, exit_time_late: {distance(ing_late, usc_late)/speed_late} min \n ")
+        logger.info(f"collision_time: {collision_time} min, exit_time_late: {distance(ing_late, usc_late)/speed_late} min \n ")
         logger.info(f"--- Starting population {exp+1}/{n_experiments} with entry {ing_late}, exit {usc_late}, speed {speed_late} ---")
 
 
-        '''
-        pop_time = [ind[0][0] for ind in pop]
-        pop_theta = [ind[0][1] for ind in pop]
-        pop_vel = [ind[0][2] for ind in pop]
-        fig, ax = plt.subplots(3, 1)
-        ax[0].hist(pop_time, bins=20, alpha=0.5, label='time')
-        ax[1].hist(pop_theta, bins=20, alpha=0.5, label='theta')
-        ax[2].hist(pop_vel, bins=20, alpha=0.5, label='velocity')
-        ax[0].legend(loc='upper right')
-        ax[1].legend(loc='upper right')
-        ax[2].legend(loc='upper right')
-        plt.show()
-        sys.exit(0)
-        '''
-        
+         
         # Inizializza fitness
         
         for ind in pop:
-            logger.info("individual:" +str(ind))
+            ind.fitness.values = toolbox.evaluate(ind, exp_scenario)
 
-            ind.fitness.values = toolbox.evaluate(ind, p0=ing_late, theta0=THETA_0, time0=TIME_0, lato=scn["area_size"], exit_ref=usc_late)
-            logger.info("path:" +str(ind.sim["path"]))
-
-            
-            xx = [x[0] for x in ind.sim["path"]]
-            yy = [y[1] for y in ind.sim["path"]]
-            plt.plot(xx, yy, color='blue', alpha=0.1 )
-            plt.scatter(xx[1], yy[1], color='red', alpha=0.1)
-            
-        plt.plot([ing_late[0], usc_late[0]], [ing_late[1], usc_late[1]], color='orange')
-        plt.savefig("data/debugpop.png")
-        plt.figure()
-        sys.exit(0)
+        draw_population(pop, exp_scenario, filename=f"data/{exp}_starting_population.png")
+      
+  
         tools.emo.assignCrowdingDist(pop)
         for gen in range(NGEN):
             offspring = tools.selTournamentDCD(pop, len(pop))
@@ -143,13 +148,20 @@ def main():
                     ind[:] = toolbox.mutate(ind)
 
             for ind in offspring:
-                ind.fitness.values = toolbox.evaluate(ind,p0=ing_late, theta0=THETA_0, time0=TIME_0, lato=scn["area_size"], exit_ref=usc_late)
+                ind.fitness.values = toolbox.evaluate(ind,exp_scenario)
 
             tools.emo.assignCrowdingDist(offspring)
             pop = toolbox.select(pop + offspring, POP_SIZE)
 
-        # Salva Pareto front finale
-        ga.save_pareto_front(tools.sortNondominated(pop, len(pop), True)[0], "pareto_front.json")
+        non_dominated = tools.sortNondominated(pop, len(pop), True)[0]
+        logger.info(f"--- Non dominated solutions: {len(non_dominated)} ---")
+        collisions = 0
+        from myutils.geometry2d import collision_detection
+        for ind in non_dominated:
+            if collision_detection(ind.sim["path"], p_inc, separation_min, [collision_time-2.5*60/speed_early, collision_time+2.5*60/speed_early]):
+                collisions +=1
+        logger.info(f"--- Collisions in non dominated solutions: {collisions} ---")
+        ga.save_pareto_front(exp_scenario, tools.sortNondominated(pop, len(pop), True)[0], f"data/{exp}_pareto_front.json")
 
 if __name__ == "__main__":
     main()

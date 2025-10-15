@@ -5,7 +5,7 @@ import json
 from typing import List, Tuple
 from scenario.conf import scn
 from shapely.geometry import LineString, Polygon, Point
-from myutils.geometry2d import calculate_border_intersection, compute_initial_bearing
+from myutils.geometry2d import collision_detection, calculate_border_intersection, compute_initial_bearing
 import logging
 import numpy as np
 
@@ -112,20 +112,31 @@ def simula_traiettoria(individuo: Individuo,
     }
 
 def valuta_individuo(individuo: Individuo,
-                     p0,
-                     theta0,
-                     t0,
-                     lato,
-                     exit_ref):
-    sim = simula_traiettoria(individuo, p0=p0, theta0=theta0, t0=t0, lato=lato)
-    length = sim["path_length_inside"]
-    if sim["exited"] and sim["exit_point"] is not None:
-        ex, ey = sim["exit_point"]
-        dist_exit = math.hypot(ex - exit_ref[0], ey - exit_ref[1])
+                        exp_scenario):  
+    THETA_0 = 360 * compute_initial_bearing(exp_scenario["ing_late"], exp_scenario["usc_late"])/(2*math.pi)
+    TIME_0 = 0.0
+    sim = simula_traiettoria(individuo, p0=exp_scenario["ing_late"], theta0=THETA_0, t0=TIME_0, lato=scn["area_size"])
+    # check for collision
+    travesal_time = scn["separation_min"]/exp_scenario["speed_early"]*60
+    collision = collision_detection(sim["path"], exp_scenario["collision_point"], scn["separation_min"], [exp_scenario["collision_time"]-travesal_time, exp_scenario["collision_time"]+travesal_time])
+    
+   
+    if collision:
+        length = 10e6
+        dist_exit = 10e6
+        fluidity = 10e6
+        delta_theta = 10e6
     else:
-        dist_exit = math.hypot(lato/2 - exit_ref[0], lato/2 - exit_ref[1])
-    fluidity = sim["total_angle_change"]
-    return (length, dist_exit, fluidity), sim
+        length = sim["path_length_inside"]
+        dist_exit = Point(sim["exit_point"]).distance(Point(exp_scenario["usc_late"])) 
+        fluidity = sim["total_angle_change"]
+        # compare the difference between the orientation of the original path 
+        # and the orientation of the new path at the exit point
+        theta_orig = compute_initial_bearing(exp_scenario["ing_late"], exp_scenario["usc_late"])
+        theta_new = compute_initial_bearing(sim["path"][-2][:2], sim["path"][-1][:2])
+        delta_theta = abs(theta_orig - theta_new)
+
+    return (length, dist_exit, delta_theta), sim
 
 def random_gene(time_span, speed_lim, max_dtheta=90.0):
     t = random.uniform(time_span[0], time_span[1])
@@ -183,7 +194,7 @@ def crossover_un_punto(p1: Individuo, p2: Individuo):
     child2 = ordina_individuo(p2[:cut2] + p1[cut1:])
     return child1[:MAX_GENI], child2[:MAX_GENI]
 
-def save_pareto_front(population, filename="pareto_front.json"):
+def save_pareto_front(exp_scenario,population, filename="pareto_front.json"):
     data = []
     for ind in population:
         fitness = getattr(ind, "fitness", None)
@@ -201,6 +212,20 @@ def save_pareto_front(population, filename="pareto_front.json"):
                 "exit_point": sim.get("exit_point")
             })
         data.append(entry)
+    scene = {
+        "area_size": scn["area_size"],
+        "separation_min": scn["separation_min"],  
+        "ing_early": exp_scenario["ing_early"],
+        "usc_early": exp_scenario["usc_early"],
+        "speed_early": exp_scenario["speed_early"],
+        "ing_late": exp_scenario["ing_late"],
+        "usc_late": exp_scenario["usc_late"],
+        "speed_late": exp_scenario["speed_late"],
+        "collision_point": exp_scenario["collision_point"],
+        "collision_time": exp_scenario["collision_time"],
+        "exit_late_time": exp_scenario["exit_late_time"]}
+    
+    data = {"scenario": scene, "population": data}
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
     return filename

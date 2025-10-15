@@ -108,3 +108,22 @@ def compute_initial_bearing(p1, p2):
     dy = p2[1] - p1[1]
     angle = math.atan2(dy, dx)
     return angle
+
+def collision_detection(path, pcenter, radius, time_slot):
+    # Define circle as buffered Point
+    circle = Point(pcenter).buffer(radius)
+
+    # Filter points by time interval [t_start, t_end]
+    # filtered_points = [pt for pt in path if time_slot[0] <= pt[2] <= time_slot[1]]
+    '''
+    I do not consider the time to increase the probability of collision
+    '''
+    filtered_points = [pt for pt in path]
+    if len(filtered_points) >= 2:
+        sub_route = LineString([(pt[0], pt[1]) for pt in filtered_points])
+        is_inside = sub_route.intersects(circle)
+    else:
+        is_inside = False  # Not enough points in interval to define route
+    if is_inside:
+        logger.debug(f"Collision detected")
+    return is_inside

@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # add parameters for visualization
     parser.add_argument("--input", type=str, default="data/traiettorie_aerei.csv", help="File di input per la visualizzazione delle traiettorie")
     #number of trajectories to show
-    parser.add_argument("--av", type=int, default=2, help="Numero di traiettorie da visualizzare")
+    parser.add_argument("--av", type=int, default=6, help="Numero di traiettorie da visualizzare")
     parser.add_argument("--print", action="store_true", help="Stampa i dati delle traiettorie")
     
     args = parser.parse_args()

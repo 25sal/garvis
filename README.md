@@ -27,18 +27,24 @@ python3 scenario/scenario2d.py visualize --input data/traiettorie_aerei.csv --pr
 the charts will be saved data/2dscenario_{0..2}.png images.
 
 ## Run genetic algorithm
-All parameters of the algorithm are set in scenario/conf.py
+All static parameters of the problem are set in scenario/conf.py
 
 ```bash
-python3 ga/disiero.py
+python3 ga/run_ngsa2.py
 ```
 
-The result is a file named data/pareto_scenario_{i}.json for each scenario.
+The result is a file named data/{i}_pareto_scenario.json for each scenario.
+Also a an image of the starting population is genenerated.
+N.B. In the collision detection is currently disabled the time check.
+
 
 ## GA result visualization
 
-Read from data/pareto_scenario{i}.json and generate  images of the pareto and of paths.
+Read from data/{i}_pareto_scenario.json and generate  images of the pareto and of paths.
 
 ```bash
-python3 ga/visualization.py
+python3 ga/ngsa_vis.py
 ```
+I generates:
+ - an image of the population
+ - an image of the pareto front (3D and 2D)

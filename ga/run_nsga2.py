@@ -72,12 +72,14 @@ def main():
     creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0))
     creator.create("Individual", list, fitness=creator.FitnessMulti, sim=dict)
 
-    for exp in range(n_experiments):
+    for exp in range(first_experiment,n_experiments+first_experiment):
         p_inc = collision_points[exp]
         aerei = aerei_data[exp*2:exp*2+2]
         a1, a2 = aerei
         t1 = distance(a1[0], a1[2]) / a1[3]
         t2 = distance(a2[0], a2[2]) / a2[3]
+
+        # identify the early and late aircraft
         early, late = (a1, a2) if t1 < t2 else (a2, a1)
 
         ing_early, usc_early, p_inc, speed_early = early
@@ -94,6 +96,11 @@ def main():
         collision_time = 60 * distance(ing_early, p_inc) / speed_early
         exit_late_time = 60 * distance(ing_late, usc_late) / speed_late
         
+
+        ''' 
+        while snc includes the static parameters of the scenario,
+        exp_scenario includes the ones which depends on the specific experiment (the two aircrafts)
+        '''
         exp_scenario = {
             "ing_early": ing_early,
             "usc_early": usc_early,

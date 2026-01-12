@@ -1,14 +1,13 @@
-%%{init: {'theme':'base', 'themeVariables': {'fontSize':'18px', 'edgeLabelBackground':'#FFFFFF'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'20px', 'edgeLabelBackground':'#FFFFFF'}, 'flowchart': {'nodeSpacing': 80, 'rankSpacing': 40, 'padding': 10}}}%%
 flowchart TB
-    n0[/SCENARIO Initial Data/]
-    n1(MODEL 2 RL Generator<br/>Warm Start)
-    n2(GENETIC ALGORITHM<br/>NSGA II)
-    n3[/PARETO FRONT <br/>optimal solutions/]
-    n4(MODEL 1 RECOMMENDER<br/>RL + Fuzzy)
-    n5[/SOLUTION + EXPLANATION/]
-    n6{{USER <br/>Human in Loop}}
-    n7[/FEEDBACK/]
-
+    n0[/<strong>Scenario</strong><br/> Initial Data/]
+    n1(<strong>RL Generator</strong> <br/>Warm Start)
+    n2(<strong>Genetic ALGORITHM</strong><br/>NSGA II)
+    n3[/<strong>Pareto Front</strong> <br/>optimal solutions/]
+    n4(<strong>Recommender</strong><br/>RL + Fuzzy)
+    n5[/<strong>Solutions + Explanation</strong>/]
+    n6{{<strong>User</strong> <br/>Human in Loop}}
+    n7[/<strong>Feedback</strong>/]
     n0 --> n1
     n1 --> n2
     n2 --> n3
@@ -19,13 +18,13 @@ flowchart TB
     n7 -.->|Retraining| n4
     n7 -.->|Retraining| n1
 
-    style n0 fill:#FFFFFF,stroke:#333333
-    style n1 fill:#B0C4DE,stroke:#333333
-    style n2 fill:#B0C4DE,stroke:#333333
-    style n3 fill:#E8F4F8,stroke:#333333
-    style n4 fill:#B0C4DE,stroke:#333333
-    style n5 fill:#E8F4F8,stroke:#333333
-    style n6 fill:#87CEEB,stroke:#333333
-    style n7 fill:#FFFFFF,stroke:#333333
+    style n0 fill:#FFFFFF,stroke:#333333,white-space:nowrap
+    style n1 fill:#B0C4DE,stroke:#333333,white-space:nowrap
+    style n2 fill:#B0C4DE,stroke:#333333,white-space:nowrap
+    style n3 fill:#E8F4F8,stroke:#333333,white-space:nowrap
+    style n4 fill:#B0C4DE,stroke:#333333,white-space:nowrap
+    style n5 fill:#E8F4F8,stroke:#333333,white-space:nowrap
+    style n6 fill:#87CEEB,stroke:#333333,white-space:nowrap
+    style n7 fill:#FFFFFF,stroke:#333333,white-space:nowrap
     linkStyle 7 font-size:22px
     linkStyle 8 font-size:22px

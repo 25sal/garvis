@@ -18,6 +18,17 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
+plt.rcParams.update({
+    'font.size': 18,
+    'axes.titlesize': 20,
+    'axes.labelsize': 18,
+    'xtick.labelsize': 18,
+    'ytick.labelsize': 18,
+    'legend.fontsize': 16,
+})
+
+
+
 # --- Parametri globali ---
 area_size = scn["area_size"]
 separation_min = scn["separation_min"]
@@ -59,7 +70,7 @@ def draw_population(population, exp_scenario, filename="population.png"):
     plt.ylim(0, area_size)
     plt.xlabel("X (NM)")
     plt.ylabel("Y (NM)")
-    plt.title("Population Trajectories")
+    #plt.title("Population Trajectories")
     plt.savefig(filename)
     plt.close()
 

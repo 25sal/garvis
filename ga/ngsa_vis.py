@@ -7,6 +7,19 @@ import glob
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
+
+
+plt.rcParams.update({
+    'font.size': 18,
+    'axes.titlesize': 20,
+    'axes.labelsize': 18,
+    'xtick.labelsize': 18,
+    'ytick.labelsize': 18,
+    'legend.fontsize': 16,
+})
+
+
 filnames = glob.glob("data/*_pareto_front.json")
 for filename in filnames:
     results = json.load(open(filename))

@@ -10,6 +10,7 @@ from myutils.geometry2d import is_valid_path
 from scenario.scenario2d import leggi_dati_csv
 from myutils.geometry2d import compute_initial_bearing
 import matplotlib.pyplot as plt
+import time
 import math
 import sys
 
@@ -17,6 +18,7 @@ import sys
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+perf_log = None
 
 plt.rcParams.update({
     'font.size': 18,
@@ -83,7 +85,11 @@ def main():
     creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0))
     creator.create("Individual", list, fitness=creator.FitnessMulti, sim=dict)
 
+
     for exp in range(first_experiment,n_experiments+first_experiment):
+        # take the time to measure the duration of the execution
+        ev_start_time = time.time()
+        
         p_inc = collision_points[exp]
         aerei = aerei_data[exp*2:exp*2+2]
         a1, a2 = aerei
@@ -170,7 +176,8 @@ def main():
 
             tools.emo.assignCrowdingDist(offspring)
             pop = toolbox.select(pop + offspring, POP_SIZE)
-
+            
+             
         non_dominated = tools.sortNondominated(pop, len(pop), True)[0]
         logger.info(f"--- Non dominated solutions: {len(non_dominated)} ---")
         collisions = 0
@@ -179,7 +186,18 @@ def main():
             if collision_detection(ind.sim["path"], p_inc, separation_min, [collision_time-2.5*60/speed_early, collision_time+2.5*60/speed_early]):
                 collisions +=1
         logger.info(f"--- Collisions in non dominated solutions: {collisions} ---")
-        ga.save_pareto_front(exp_scenario, tools.sortNondominated(pop, len(pop), True)[0], f"data/{exp}_pareto_front.json")
-
+        ga.save_pareto_front(exp_scenario, tools.sortNondominated(pop, len(pop), True)[0], f"data/{exp}_pareto_front_{NGEN}.json")
+        ev_exp_time = time.time() - ev_start_time
+        logger.info(f"--- Execution time for experiment {exp+1}: {ev_exp_time:.2f} seconds ---\n")
+        if perf_log is not None:
+            with open(perf_log, "a") as f:
+                f.write(f"{exp+1}, {NGEN}, {ev_exp_time:.2f}\n")
+            
 if __name__ == "__main__":
-    main()
+    perf_log = f"data/performance_log.txt"
+    with open(perf_log, "w") as f:
+        f.write("Experiment, NGEN, Duration\n")
+    for NGEN in [5, 10, 20]:
+        logger.info(f"Running NSGA-II with NGEN={NGEN}")
+        main()
+            

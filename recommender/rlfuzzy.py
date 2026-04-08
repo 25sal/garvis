@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import json
 from matplotlib.pylab import pareto
 import numpy as np
@@ -302,13 +303,14 @@ class MultiScenarioEnv(gym.Env):
                  epsilon=0.1, use_genotype_encoding='stats', max_waypoints=10):
         super().__init__()
         self.scenarios = []
-        file_list = glob.glob(os.path.join(input_folder, "*_pareto_front.json"))
+        file_list = glob.glob(os.path.join(input_folder, "*_pareto_front_20.json"))
         
         if not file_list:
             raise ValueError(f"Nessun file trovato in {input_folder}")
         
         for idx, filename in enumerate(file_list):
             try:
+                print(f"Caricamento scenario da {filename}")
                 with open(filename) as f:
                     d = json.load(f)
                     scenario = d.get("scenario", {})
@@ -498,6 +500,7 @@ class MultiScenarioEnv(gym.Env):
         return obs
     
     def step(self, action):
+        print(f"Step: {action}")
         pareto = self.current_scenario['pareto_front']
         action = int(action) % len(pareto)
         
@@ -597,7 +600,7 @@ def train_from_folder(input_folder="./", total_timesteps=100000, encoding_type='
         verbose=1, 
         batch_size=64, 
         n_epochs=10, 
-        n_steps=2048, 
+        n_steps=640, # era 2048 
         device='cpu',
         policy_kwargs=dict(net_arch=dict(pi=[256,256], vf=[256,256]))  # Dizionario invece di lista
     )
@@ -609,4 +612,4 @@ def train_from_folder(input_folder="./", total_timesteps=100000, encoding_type='
 
 
 if __name__ == "__main__":
-    train_from_folder(input_folder="./data", total_timesteps=100000, encoding_type='stats')
+    train_from_folder(input_folder="./data", total_timesteps=100, encoding_type='stats')

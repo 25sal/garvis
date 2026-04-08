@@ -7,7 +7,7 @@ scn = {
     "n_experiments": 10,
     "first_experiment": 0,
     "pop_size": 100,
-    "n_generations": 10,
+    "n_generations": 50,
     "n_segments": 3,
     "sampling_interval": 30,  # in secondi
     "KMH_TO_NM_MIN": 0.539957 / 60,

@@ -1,0 +1,29 @@
+@startuml
+skinparam backgroundColor white
+skinparam roundcorner 5
+skinparam shadowing false
+
+skinparam rectangle {
+    BorderColor #A0A0FF
+}
+
+rectangle "SCENARIO Initial Data" as n0 #E6F0FF
+rectangle "MODEL 2 RL Generator\nWarm Start" as n1 #FFF5E6
+rectangle "GENETIC ALGORITHM\nNSGA II" as n2 #E6F5E6
+rectangle "PARETO FRONT 10-20\nsolutions" as n3 #FFE6F0
+rectangle "MODEL 1 RECOMMENDER\nRL + Fuzzy" as n4 #F0E6FF
+rectangle "SOLUTION + EXPLANATION" as n5 #E6FFFF
+rectangle "USER Human in Loop" as n6 #FFFFE6
+rectangle "FEEDBACK" as n7 #FFE6F0
+
+n0 --> n1
+n1 --> n2
+n2 --> n3
+n3 --> n4
+n4 --> n5
+n5 --> n6
+n6 --> n7
+n7 ..> n4 : Retraining
+n7 ..> n1 : Retraining
+
+@enduml

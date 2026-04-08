@@ -73,33 +73,34 @@ def visualizza_traiettorie(aerei_data, area_size, p_incontro, print=False):
     
     for i in range(0,len(aerei_data),2):
         # Disegna il bordo dell'area
-        ax.plot([0, area_size, area_size, 0, 0], [0, 0, area_size, area_size, 0], 'k-', lw=2, label="Bordo area")
+        ax.plot([0, area_size, area_size, 0, 0], [0, 0, area_size, area_size, 0], 'k-', lw=2, label="Border")
         # Imposta i limiti dell'area
         ax.set_xlim(0, area_size)
         ax.set_ylim(0, area_size)
         ax.set_aspect('equal', adjustable='box')
 
         # Aggiungi titolo, legenda e griglia
-        ax.set_title("Traiettorie degli aerei")
-        ax.set_xlabel("Miglia nautiche (x)")
-        ax.set_ylabel("Miglia nautiche (y)")
-        ax.legend()
+        #ax.set_title("Traiettorie degli aerei")
+        ax.set_xlabel("Nautic Miles (x)")
+        ax.set_ylabel("Nautic Miles (y)")
         ax.grid(True, linestyle='--', alpha=0.7)
         # Aggiungi il punto di incontro
-        ax.scatter(*p_incontro[i], color="red", s=100, label="Punto di incontro")
+        ax.scatter(*p_incontro[i], color="red", s=100, label="Conflict Point")
 
         # Disegna le traiettorie degli aerei
         for j, aereo in enumerate(aerei_data[i:i+2]):
             ingresso, uscita, _, speed = aereo
             distance = ((ingresso[0] - p_incontro[i][0])**2 + (ingresso[1] - p_incontro[i][1])**2)**0.5
             time_flight = distance / speed
-            ax.plot([ingresso[0], uscita[0]], [ingresso[1], uscita[1]], label=f"Aereo {int(i/2)}_{j} (Vel: {speed:.1f} km/h) t={time_flight:.2f}h")
-            ax.scatter(*ingresso, color="blue", s=50, label=f"Ingresso Aereo {int(i/2)}_{j}" if i == 0 else None)
-            ax.scatter(*uscita, color="green", s=50, label=f"Uscita Aereo {int(i/2)}_{j}" if i == 0 else None)
+            ax.plot([ingresso[0], uscita[0]], [ingresso[1], uscita[1]], label=f"AereAircraft {int(i/2)}_{j} (Vel: {speed:.1f} km/h) t={time_flight:.2f}h")
+            ax.scatter(*ingresso, color="blue", s=50, label=f"Entrance {int(i/2)}_{j}" if i == 0 else None)
+            ax.scatter(*uscita, color="green", s=50, label=f"Exit {int(i/2)}_{j}" if i == 0 else None)
+        ax.legend()
         if print:
             plt.savefig(f"data/2dscenario_{int(i/2)}.png")
             #rimuovi le traiettorie e il punto di incontro per la prossima iterazione
             ax.cla()
+   
 
     if not print:
         # Mostra il grafico
